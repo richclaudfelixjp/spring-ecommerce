@@ -1,0 +1,24 @@
+# ecommerceプロジェクト用のGitHub Actions CIワークフロー
+
+name: ecommerce CI
+
+on:
+  push:
+    branches: [ main ]           # mainブランチへのpushで実行
+  pull_request:
+    branches: [ main ]           # mainブランチへのプルリクエストで実行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest       # 最新のUbuntuランナーを使用
+    steps:
+      - uses: actions/checkout@v4    # リポジトリのコードをチェックアウト
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4  # TemurinディストリビューションでJava 21をセットアップ
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build with Maven
+        run: ./mvnw clean verify     # Maven Wrapperでビルドとテストを実行
