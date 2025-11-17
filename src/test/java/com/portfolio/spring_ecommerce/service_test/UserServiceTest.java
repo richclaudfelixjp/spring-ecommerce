@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class UserServiceTest {
+
     @Test
     void testLoadUserByUsernameReturnsAuthorities() {
         // UserRepositoryのモックを作成
@@ -33,6 +34,32 @@ class UserServiceTest {
         // サービス経由でユーザー情報を取得
         UserDetails userDetails = userService.loadUserByUsername("testuser");
         // 権限リストに"ROLE_USER"が含まれていることを検証
+        assertTrue(userDetails.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_USER")));
+    }
+
+    @Test
+    void testLoadAdminUserHasAdminAuthority() {
+        // UserRepositoryのモックを作成
+        UserRepository userRepository = mock(UserRepository.class);
+        // UserServiceにモックを注入
+        UserService userService = new UserService(userRepository);
+
+        // 管理者ユーザーを作成し、複数ロールを設定
+        User admin = new User();
+        admin.setUsername("admin");
+        admin.setPassword("encoded_password");
+        admin.setRoles(Set.of("ROLE_ADMIN", "ROLE_USER"));
+
+        // モックの振る舞いを定義：findByUsernameが呼ばれたらadminを返す
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
+
+        // サービス経由でユーザー情報を取得
+        UserDetails userDetails = userService.loadUserByUsername("admin");
+        
+        // 権限リストに"ROLE_ADMIN"と"ROLE_USER"が含まれていることを検証
+        assertTrue(userDetails.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
         assertTrue(userDetails.getAuthorities().stream()
             .anyMatch(a -> a.getAuthority().equals("ROLE_USER")));
     }
