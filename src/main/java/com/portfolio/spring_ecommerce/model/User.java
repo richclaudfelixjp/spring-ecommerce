@@ -1,10 +1,13 @@
 package com.portfolio.spring_ecommerce.model;
 
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.util.Set;
 
 @Entity
 @Table(name = "app_users") // DB上のテーブル名を指定
@@ -15,6 +18,9 @@ public class User {
     private Long id;
     private String username;
     private String password;
+
+    @ElementCollection(fetch = FetchType.EAGER) // 役割（ロール）をEAGERで取得
+    private Set<String> roles;
 
     // ユーザー名とパスワードを受け取るコンストラクタ
     public User(String username, String password) {
@@ -48,5 +54,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Set<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
     }
 }
