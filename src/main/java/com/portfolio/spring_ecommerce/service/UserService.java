@@ -6,8 +6,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -28,11 +28,20 @@ public class UserService implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // ユーザー名で検索し、見つからなければ例外を投げる（日本語メッセージ）
+        // ユーザー名でDBからユーザーを検索。見つからなければ例外をスロー
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("ユーザー名「" + username + "」のユーザーが見つかりません。"));
 
-        // UserエンティティからSpring SecurityのUserDetailsを生成して返す
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), new ArrayList<>());
+        // ユーザーのロールをSpring Securityの権限リストに変換
+        var authorities = user.getRoles().stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+
+        // UserDetails（Spring Security標準のユーザー情報）を生成して返却
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                authorities
+        );
     }
 }
