@@ -6,6 +6,7 @@ import com.portfolio.spring_ecommerce.service.UserService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Optional;
 import java.util.Set;
@@ -63,4 +64,47 @@ class UserServiceTest {
         assertTrue(userDetails.getAuthorities().stream()
             .anyMatch(a -> a.getAuthority().equals("ROLE_USER")));
     }
+
+    @Test
+    void testLoadUserByUsernameReturnsCorrectUsernameAndPassword() {
+        // UserRepositoryのモックを作成
+        UserRepository userRepository = mock(UserRepository.class);
+        // UserServiceにモックを注入
+        UserService userService = new UserService(userRepository);
+
+        // テスト用ユーザーを作成し、ユーザー名とパスワードを設定
+        User user = new User();
+        user.setUsername("sampleuser");
+        user.setPassword("samplepass");
+        user.setRoles(Set.of("ROLE_USER"));
+
+        // モックの振る舞いを定義：findByUsernameが呼ばれたらuserを返す
+        when(userRepository.findByUsername("sampleuser")).thenReturn(Optional.of(user));
+
+        // サービス経由でユーザー情報を取得
+        UserDetails userDetails = userService.loadUserByUsername("sampleuser");
+        // ユーザー名とパスワードが正しいことを検証
+        assertEquals("sampleuser", userDetails.getUsername());
+        assertEquals("samplepass", userDetails.getPassword());
+    }
+
+    @Test
+    void testLoadUserByUsernameThrowsExceptionWhenUserNotFound() {
+        // UserRepositoryのモックを作成
+        UserRepository userRepository = mock(UserRepository.class);
+        // UserServiceにモックを注入
+        UserService userService = new UserService(userRepository);
+
+        // モックの振る舞いを定義：findByUsernameが呼ばれたら空を返す
+        when(userRepository.findByUsername("notfound")).thenReturn(Optional.empty());
+
+        // ユーザーが見つからない場合に例外がスローされることを検証
+        UsernameNotFoundException thrown = assertThrows(
+            UsernameNotFoundException.class,
+            () -> userService.loadUserByUsername("notfound")
+        );
+        // 例外メッセージにユーザー名が含まれていることを検証
+        assertTrue(thrown.getMessage().contains("ユーザー名「notfound」のユーザーが見つかりません。"));
+    }
+
 }
