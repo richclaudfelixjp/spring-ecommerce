@@ -1,64 +1,75 @@
 package com.portfolio.spring_ecommerce.config;
 
+import com.portfolio.spring_ecommerce.filter.JwtAuthenticationFilter;
 import com.portfolio.spring_ecommerce.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
-    // UserServiceとPasswordEncoderをDIで受け取る
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    // コンストラクタインジェクション
-    public SecurityConfig(UserService userService, PasswordEncoder passwordEncoder) {
+    public SecurityConfig(UserService userService, 
+                         PasswordEncoder passwordEncoder,
+                         JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     /**
      * Spring Securityのフィルタチェーンを定義
-     * 各URLごとの認可設定、ログイン・ログアウトの有効化などを行う
+     * JWT認証を使用するため、セッションは使わない設定にする
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            // CSRF保護を無効化（JWT使用時は不要）
+            .csrf(csrf -> csrf.disable())
             // 各URLパターンごとにアクセス権限を設定
             .authorizeHttpRequests(auth -> auth
-                // /test へのアクセスは全て許可
+                // ログインエンドポイントは認証不要
+                .requestMatchers("/auth/**").permitAll()
+                // テストエンドポイントは認証不要
                 .requestMatchers("/test").permitAll()
-                // /admin/** へのアクセスはADMINロールが必要
+                // 管理者エンドポイントはADMINロールが必要
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                // /user/** へのアクセスはUSERロールが必要
+                // ユーザーエンドポイントはUSERロールが必要
                 .requestMatchers("/user/**").hasRole("USER")
-                // その他のリクエストは全て許可
-                .anyRequest().permitAll()
+                // その他のリクエストは認証が必要
+                .anyRequest().authenticated()
             )
-            // フォームログインを有効化（デフォルトのログインページを使用）
-            .formLogin(form -> form.permitAll())
-            // ログアウト機能を有効化（デフォルトのログアウトURLを使用）
-            .logout(logout -> logout.permitAll());
-        // 設定をビルドして返却
+            // セッションを使わない設定（JWTはステートレス）
+            .sessionManagement(session -> 
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // JWTフィルターをUsernamePasswordAuthenticationFilterの前に追加
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
     /**
      * 認証マネージャのBean定義
-     * UserServiceとPasswordEncoderを使って認証処理を構成
      */
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authBuilder = 
             http.getSharedObject(AuthenticationManagerBuilder.class);
         authBuilder
-            .userDetailsService(userService) // ユーザー情報の取得元を指定
-            .passwordEncoder(passwordEncoder); // パスワードのハッシュ化方式を指定
+            .userDetailsService(userService)
+            .passwordEncoder(passwordEncoder);
         return authBuilder.build();
     }
 }
