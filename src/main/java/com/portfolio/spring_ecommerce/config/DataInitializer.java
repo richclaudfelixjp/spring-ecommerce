@@ -14,10 +14,10 @@ import java.util.Set;
 @Configuration
 public class DataInitializer {
 
-    @Value("${ADMIN_PASSWORD:admin}")
+    @Value("${ADMIN_PASSWORD}")
     private String adminPassword;
 
-    @Value("${USER_PASSWORD:user}")
+    @Value("${USER_PASSWORD}")
     private String userPassword;
 
     @Bean
