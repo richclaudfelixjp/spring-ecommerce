@@ -5,6 +5,10 @@ import com.portfolio.spring_ecommerce.controller.AuthController;
 import com.portfolio.spring_ecommerce.dto.AuthRequest;
 import com.portfolio.spring_ecommerce.service.UserService;
 import com.portfolio.spring_ecommerce.util.JwtUtil;
+import com.portfolio.spring_ecommerce.model.User;
+import com.portfolio.spring_ecommerce.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +46,17 @@ class AuthControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper; // JSON変換用
+
+    @MockitoBean
+    private UserRepository userRepository; // UserRepositoryのモック
+
+    @MockitoBean
+    private PasswordEncoder passwordEncoder; // PasswordEncoderのモック
+
+    @BeforeEach
+    void setUp() {
+        userRepository.deleteAll(); // 各テスト前にリポジトリをクリア
+    }
 
     /**
      * 正しい認証情報でログインした場合、JWTトークンが返却されることを検証
@@ -87,5 +102,51 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().string("ユーザー名またはパスワードが正しくありません"));
+    }
+
+    /**
+     * 新規ユーザー登録のテスト
+     */
+    @Test
+    void registerUser_whenNewUser_shouldReturnOk() throws Exception {
+        AuthRequest request = new AuthRequest();
+        request.setUsername("newUser");
+        request.setPassword("password");
+
+        // モック: 新規ユーザーは存在しない
+        Mockito.when(userRepository.findByUsername("newUser")).thenReturn(java.util.Optional.empty());
+        // モック: save時にUserを返す
+        Mockito.when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("ユーザー登録が成功しました"));
+
+        Mockito.verify(userRepository).save(Mockito.argThat(user -> user.getUsername().equals("newUser")));
+    }
+    
+    /**
+     * 既存のユーザー名で登録しようとした場合、400エラーが返却されることを検証
+     */
+    @Test
+    void registerUser_whenUsernameExists_shouldReturnBadRequest() throws Exception {
+        User existingUser = new User();
+        existingUser.setUsername("existingUser");
+        existingUser.setPassword(passwordEncoder.encode("password"));
+
+        // モック: 既存ユーザーが存在する
+        Mockito.when(userRepository.findByUsername("existingUser")).thenReturn(java.util.Optional.of(existingUser));
+
+        AuthRequest request = new AuthRequest();
+        request.setUsername("existingUser");
+        request.setPassword("password");
+
+        mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("ユーザー名は既に使用されています"));
     }
 }
