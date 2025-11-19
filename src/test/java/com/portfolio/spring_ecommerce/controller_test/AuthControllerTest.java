@@ -3,6 +3,7 @@ package com.portfolio.spring_ecommerce.controller_test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portfolio.spring_ecommerce.controller.AuthController;
 import com.portfolio.spring_ecommerce.dto.AuthRequest;
+import com.portfolio.spring_ecommerce.service.JwtBlacklistService;
 import com.portfolio.spring_ecommerce.service.UserService;
 import com.portfolio.spring_ecommerce.util.JwtUtil;
 import com.portfolio.spring_ecommerce.model.User;
@@ -20,8 +21,11 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -43,6 +47,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private JwtUtil jwtUtil; // JwtUtilのモック
+
+    @MockitoBean
+    private JwtBlacklistService jwtBlacklistService; // JwtBlacklistServiceのモック
 
     @Autowired
     private ObjectMapper objectMapper; // JSON変換用
@@ -148,5 +155,32 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("ユーザー名は既に使用されています"));
+    }
+
+    /**
+     * ログアウト時にトークンがブラックリストに追加されることを検証
+     */
+    @Test
+    void logout_shouldAddTokenToBlacklist_whenTokenIsProvided() throws Exception {
+        String token = "valid-jwt-token";
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/auth/logout")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(content().string("ログアウトしました"));
+
+        verify(jwtBlacklistService).addTokenToBlacklist(token);
+    }
+
+    /**
+     * ログアウト時にAuthorizationヘッダーがない場合、エラーなく成功することを検証
+     */
+    @Test
+    void logout_shouldSucceed_whenNoTokenIsProvided() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/auth/logout"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("ログアウトしました"));
+
+        verify(jwtBlacklistService, never()).addTokenToBlacklist(any());
     }
 }

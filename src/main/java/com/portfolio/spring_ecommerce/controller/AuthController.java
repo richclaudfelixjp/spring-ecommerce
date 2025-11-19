@@ -2,10 +2,15 @@ package com.portfolio.spring_ecommerce.controller;
 
 import com.portfolio.spring_ecommerce.dto.AuthRequest;
 import com.portfolio.spring_ecommerce.dto.AuthResponse;
+import com.portfolio.spring_ecommerce.service.JwtBlacklistService;
 import com.portfolio.spring_ecommerce.service.UserService;
 import com.portfolio.spring_ecommerce.util.JwtUtil;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.portfolio.spring_ecommerce.model.User;
 import com.portfolio.spring_ecommerce.repository.UserRepository;
+import com.portfolio.spring_ecommerce.service.JwtBlacklistService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Set;
@@ -30,17 +35,20 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final JwtBlacklistService jwtBlacklistService;
 
     public AuthController(AuthenticationManager authenticationManager, 
                          UserService userService, 
                          JwtUtil jwtUtil,
                          UserRepository userRepository,
-                         PasswordEncoder passwordEncoder) {
+                         PasswordEncoder passwordEncoder,
+                         JwtBlacklistService jwtBlacklistService) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtBlacklistService = jwtBlacklistService;
     }
 
     /**
@@ -87,5 +95,20 @@ public class AuthController {
         user.setRoles(Set.of("ROLE_USER"));
         userRepository.save(user);
         return ResponseEntity.ok("ユーザー登録が成功しました");
+    }
+
+    /**
+     * ログアウトエンドポイント
+     * JWTトークンをブラックリストに追加する
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        final String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String jwt = authHeader.substring(7);
+            // JWTトークンをブラックリストに追加
+            jwtBlacklistService.addTokenToBlacklist(jwt);
+        }
+        return ResponseEntity.ok("ログアウトしました");
     }
 }

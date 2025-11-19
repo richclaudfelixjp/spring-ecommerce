@@ -2,6 +2,7 @@ package com.portfolio.spring_ecommerce.controller_test;
 
 import com.portfolio.spring_ecommerce.controller.AdminController;
 import com.portfolio.spring_ecommerce.util.JwtUtil;
+import com.portfolio.spring_ecommerce.service.JwtBlacklistService;
 import com.portfolio.spring_ecommerce.service.UserService;
 
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,9 @@ class AdminControllerTest {
 
     @MockitoBean
     private UserService userService; // UserServiceのモック
+
+    @MockitoBean
+    private JwtBlacklistService jwtBlacklistService; // JwtBlacklistServiceのモック
 
     /**
      * 管理者ダッシュボードへのアクセスが成功することを検証

@@ -2,6 +2,7 @@ package com.portfolio.spring_ecommerce.filter;
 
 import com.portfolio.spring_ecommerce.service.UserService;
 import com.portfolio.spring_ecommerce.util.JwtUtil;
+import com.portfolio.spring_ecommerce.service.JwtBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,10 +24,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserService userService;
+    private final JwtBlacklistService jwtBlacklistService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserService userService) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserService userService, JwtBlacklistService jwtBlacklistService) {
         this.jwtUtil = jwtUtil;
         this.userService = userService;
+        this.jwtBlacklistService = jwtBlacklistService;
     }
 
     @Override
@@ -42,6 +45,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Authorizationヘッダーが"Bearer "で始まる場合、JWTトークンを抽出
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
+            if (jwtBlacklistService.isTokenBlacklisted(jwt)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("JWTトークンがブラックリストされました");
+                return;
+            }
             username = jwtUtil.extractUsername(jwt);
         }
 
