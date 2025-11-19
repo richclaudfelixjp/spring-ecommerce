@@ -25,6 +25,3 @@ jobs:
 
       - name: Build with Maven
         run: ./mvnw clean verify     # Maven Wrapperでビルドとテストを実行
-        env:
-          ADMIN_PASSWORD: test-admin-password
-          USER_PASSWORD: test-user-password
