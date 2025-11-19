@@ -4,22 +4,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:h2:mem:testdb;MODE=PostgreSQL",
-        "spring.datasource.driver-class-name=org.h2.Driver",
-        "spring.datasource.username=sa",
-        "spring.datasource.password=",
-        "spring.jpa.hibernate.ddl-auto=create-drop",
-        "spring.jpa.show-sql=true",
-        "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
-        "spring.jpa.properties.hibernate.format_sql=true",
-        "spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true",
-        "ADMIN_PASSWORD=test-admin",
-        "USER_PASSWORD=test-user"
-})
+@SpringBootTest
+@TestPropertySource(locations = "classpath:application-test.properties")
 class SpringEcommerceApplicationTests {
 
     @Autowired
