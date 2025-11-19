@@ -40,8 +40,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             // 各URLパターンごとにアクセス権限を設定
             .authorizeHttpRequests(auth -> auth
-                // ログインエンドポイントは認証不要
-                .requestMatchers("/auth/login").permitAll()
+                // 認証エンドポイントは認証不要
+                .requestMatchers("/auth/login", "/auth/register").permitAll()
                 // テストエンドポイントは認証不要
                 .requestMatchers("/test").permitAll()
                 // 管理者エンドポイントはADMINロールが必要

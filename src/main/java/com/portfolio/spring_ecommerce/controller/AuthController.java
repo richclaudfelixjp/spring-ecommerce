@@ -4,6 +4,12 @@ import com.portfolio.spring_ecommerce.dto.AuthRequest;
 import com.portfolio.spring_ecommerce.dto.AuthResponse;
 import com.portfolio.spring_ecommerce.service.UserService;
 import com.portfolio.spring_ecommerce.util.JwtUtil;
+import com.portfolio.spring_ecommerce.model.User;
+import com.portfolio.spring_ecommerce.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Set;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,13 +28,19 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
     public AuthController(AuthenticationManager authenticationManager, 
                          UserService userService, 
-                         JwtUtil jwtUtil) {
+                         JwtUtil jwtUtil,
+                         UserRepository userRepository,
+                         PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -56,5 +68,24 @@ public class AuthController {
 
         // JWTトークンとユーザー名を返す
         return ResponseEntity.ok(new AuthResponse(jwt, userDetails.getUsername()));
+    }
+
+    /**
+     * ユーザー登録エンドポイント
+     * 新しいユーザーを登録する
+     */
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody AuthRequest registrationRequest) {
+        if (userRepository.findByUsername(registrationRequest.getUsername()).isPresent()) {
+            // ユーザー名が既に存在する場合は400エラーを返す
+            return ResponseEntity.badRequest().body("ユーザー名は既に使用されています");
+        }
+        // 新しいユーザーを作成して保存
+        User user = new User();
+        user.setUsername(registrationRequest.getUsername());
+        user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
+        user.setRoles(Set.of("ROLE_USER"));
+        userRepository.save(user);
+        return ResponseEntity.ok("ユーザー登録が成功しました");
     }
 }
