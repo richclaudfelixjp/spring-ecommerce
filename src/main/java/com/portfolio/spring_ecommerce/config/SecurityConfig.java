@@ -41,7 +41,7 @@ public class SecurityConfig {
             // 各URLパターンごとにアクセス権限を設定
             .authorizeHttpRequests(auth -> auth
                 // ログインエンドポイントは認証不要
-                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/auth/login").permitAll()
                 // テストエンドポイントは認証不要
                 .requestMatchers("/test").permitAll()
                 // 管理者エンドポイントはADMINロールが必要

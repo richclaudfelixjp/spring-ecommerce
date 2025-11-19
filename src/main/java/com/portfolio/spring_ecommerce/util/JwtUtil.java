@@ -21,10 +21,10 @@ import java.util.function.Function;
 public class JwtUtil {
 
     // 環境変数からJWTのシークレットキーと有効期限を取得
-    @Value("${JWT_SECRET}")
+    @Value("${JWT_SECRET:defaultSecretKey1234567890}")
     private String secret;
 
-    @Value("${JWT_EXPIRATION}")
+    @Value("${JWT_EXPIRATION:3600000}")
     private Long expiration;
 
     /**
