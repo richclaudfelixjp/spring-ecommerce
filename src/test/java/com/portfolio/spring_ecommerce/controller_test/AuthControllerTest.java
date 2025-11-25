@@ -100,7 +100,7 @@ class AuthControllerTest {
         request.setPassword("wrongpass");
 
         // 認証失敗時の例外をスローするようモック設定
-        Mockito.doThrow(new BadCredentialsException("Bad credentials"))
+        Mockito.doThrow(new BadCredentialsException("認証失敗"))
                 .when(authenticationManager).authenticate(any());
 
         // /auth/loginエンドポイントへのリクエストとレスポンス検証

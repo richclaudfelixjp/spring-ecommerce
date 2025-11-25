@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -15,6 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final UserService userService;
@@ -40,10 +42,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             // 各URLパターンごとにアクセス権限を設定
             .authorizeHttpRequests(auth -> auth
-                // 認証エンドポイントは認証不要
-                .requestMatchers("/auth/login", "/auth/register").permitAll()
-                // テストエンドポイントは認証不要
-                .requestMatchers("/test").permitAll()
+                // 認証不要なエンドポイント
+                .requestMatchers("/test", "/auth/login", "/auth/register", "/auth/logout", "/products", "/products/**").permitAll()
                 // 管理者エンドポイントはADMINロールが必要
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // ユーザーエンドポイントはUSERロールが必要
