@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import com.portfolio.spring_ecommerce.model.User;
 import com.portfolio.spring_ecommerce.repository.UserRepository;
-import com.portfolio.spring_ecommerce.service.JwtBlacklistService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Set;
