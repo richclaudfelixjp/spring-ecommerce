@@ -2,12 +2,16 @@ package com.portfolio.spring_ecommerce.controller_test;
 
 import com.portfolio.spring_ecommerce.model.Product;
 import com.portfolio.spring_ecommerce.service.ProductService;
+import com.portfolio.spring_ecommerce.controller.ProductController;
+import com.portfolio.spring_ecommerce.filter.JwtAuthenticationFilter;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -21,8 +25,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * ProductControllerの結合テストクラス
  */
-@SpringBootTest
-@AutoConfigureMockMvc // MockMvcを自動設定
+@WebMvcTest(ProductController.class)
+@AutoConfigureMockMvc(addFilters = false) // MockMvcを自動設定
+
 class ProductControllerTest {
 
     @Autowired
@@ -31,7 +36,11 @@ class ProductControllerTest {
     @MockitoBean
     private ProductService productService; // ProductServiceのモック
 
+    @MockitoBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter; // JWT認証フィルターのモック
+
     @Test
+    @WithMockUser // 認証されたユーザーとしてテストを実行
     void getAllProducts_shouldReturnProductListAndStatus200() throws Exception {
         // テスト用のProductデータを作成
         Product product1 = new Product();
