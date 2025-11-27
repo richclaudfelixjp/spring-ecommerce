@@ -8,57 +8,42 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 
-/**
- * 商品情報を表すエンティティクラス。
- */
+// 商品エンティティ
 @Entity
 @Table(name="products")
 public class Product {
 
-    /**
-     * 商品ID。データベースによって自動採番される主キー。
-     */
+    // 主キー
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
-    /**
-     * SKU (Stock Keeping Unit)。在庫管理上の最小単位を識別するコード。
-     */
+    // SKUコード
     @Column(name = "sku")
     private String sku;
 
-    /**
-     * 商品名。
-     */
+    // 商品名
     @Column(name = "name")
     private String name;
 
-    /**
-     * 商品の詳細な説明。
-     */
+    // 商品説明
     @Column(name = "description")
     private String description;
 
-    /**
-     * 商品の単価。
-     */
+    // 単価
     @Column(name = "unit_price")
     private BigDecimal unitPrice;
 
-    /**
-     * 商品のステータス（例: true=有効, false=無効）。
-     */
+    // 商品ステータス（販売中かどうか）
     @Column(name = "status")
     private Boolean status;
 
-    /**
-     * 現在の在庫数。
-     */
+    // 在庫数
     @Column(name = "units_in_stock")
     private Integer unitsInStock;
 
+    // 以下、getter/setter
     public Long getId() {
         return id;
     }
@@ -74,7 +59,7 @@ public class Product {
     public void setSku(String sku) {
         this.sku = sku;
     }
-
+ 
     public String getName() {
         return name;
     }
