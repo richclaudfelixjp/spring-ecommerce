@@ -9,35 +9,44 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.stream.Collectors;
 
+/**
+ * ユーザー認証およびユーザー情報取得を担当するサービスクラス。
+ * Spring SecurityのUserDetailsServiceを実装し、ユーザー名による認証処理を提供する。
+ */
 @Service
 public class UserService implements UserDetailsService {
 
-    // Userエンティティへのデータアクセスを担当するリポジトリ
+    /**
+     * ユーザーリポジトリへの参照。
+     */
     private final UserRepository userRepository;
 
-    // UserRepositoryをDI（依存性注入）で受け取るコンストラクタ
+    /**
+     * UserServiceのコンストラクタ。
+     * Springの依存性注入によりUserRepositoryのインスタンスが注入される。
+     * @param userRepository ユーザーリポジトリ
+     */
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     /**
-     * ユーザー名からユーザー情報を取得し、Spring Security用のUserDetailsとして返す
-     * @param username ユーザー名
-     * @return UserDetails
-     * @throws UsernameNotFoundException ユーザーが見つからない場合にスロー
+     * ユーザー名に基づいてユーザー情報を取得し、Spring Security用のUserDetailsを返す。
+     * ユーザーが存在しない場合は例外をスローする。
+     * @param username 認証対象のユーザー名
+     * @return UserDetails（Spring Security用ユーザー情報）
+     * @throws UsernameNotFoundException ユーザーが見つからない場合にスローされる例外
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // ユーザー名でDBからユーザーを検索。見つからなければ例外をスロー
+
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("ユーザー名「" + username + "」のユーザーが見つかりません。"));
 
-        // ユーザーのロールをSpring Securityの権限リストに変換
         var authorities = user.getRoles().stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 
-        // UserDetails（Spring Security標準のユーザー情報）を生成して返却
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),

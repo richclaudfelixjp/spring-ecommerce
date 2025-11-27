@@ -9,26 +9,33 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.Set;
 
+// ユーザーエンティティ
 @Entity
-@Table(name = "app_users") // DB上のテーブル名を指定
+@Table(name = "app_users")
 public class User {
 
+    // 主キー
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // 主キーの自動生成
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    // ユーザー名
     private String username;
+
+    // パスワード
     private String password;
 
-    @ElementCollection(fetch = FetchType.EAGER) // 役割（ロール）をEAGERで取得
+    // ロール（権限）のセット
+    @ElementCollection(fetch = FetchType.EAGER)
     private Set<String> roles;
 
-    // ユーザー名とパスワードを受け取るコンストラクタ
+    // コンストラクタ（ユーザー名とパスワードを指定）
     public User(String username, String password) {
         this.username = username;
         this.password = password;
     }
 
-    // デフォルトコンストラクタ（JPA用）
+    // デフォルトコンストラクタ
     public User() {}
 
     // 以下、getter/setter

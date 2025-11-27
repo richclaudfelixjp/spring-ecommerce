@@ -6,12 +6,20 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * JwtBlacklistServiceの単体テストクラス。
+ * JWTトークンのブラックリスト管理ロジックを検証する。
+ */
 class JwtBlacklistServiceTest {
 
+    /**
+     * テスト対象のJwtBlacklistServiceインスタンス。
+     * 各テスト実行前に初期化される。
+     */
     private JwtBlacklistService jwtBlacklistService;
 
     /**
-     * 各テストの前に新しいJwtBlacklistServiceインスタンスを作成する
+     * 各テスト実行前にJwtBlacklistServiceを初期化する。
      */
     @BeforeEach
     void setUp() {
@@ -19,18 +27,20 @@ class JwtBlacklistServiceTest {
     }
 
     /**
-     * トークンをブラックリストに追加した場合、ブラックリストに含まれることを確認するテスト
+     * addTokenToBlacklistメソッドとisTokenBlacklistedメソッドの連携テスト。
+     * トークンがブラックリストに追加された後、正しく判定されることを検証する。
      */
     @Test
     void whenTokenAdded_shouldBeBlacklisted() {
         String token = "test-token";
-        // 初期状態ではトークンがブラックリストに含まれていないことを確認
+        
+        // ブラックリスト追加前はfalse
         assertFalse(jwtBlacklistService.isTokenBlacklisted(token));
 
         // トークンをブラックリストに追加
         jwtBlacklistService.addTokenToBlacklist(token);
 
-        // トークンがブラックリストに含まれていることを確認
+        // ブラックリスト追加後はtrue
         assertTrue(jwtBlacklistService.isTokenBlacklisted(token));
     }
 }
