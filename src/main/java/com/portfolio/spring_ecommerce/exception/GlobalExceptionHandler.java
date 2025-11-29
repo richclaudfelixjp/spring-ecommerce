@@ -26,4 +26,16 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
+
+    /**
+     * 不正な引数が渡された場合の例外処理
+     * @param ex 不正な引数例外
+     * @return エラーメッセージとHTTPステータス400
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
 }

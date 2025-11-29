@@ -52,6 +52,9 @@ public class CartService {
      */
     @Transactional
     public Cart addItemToCart(User user, Product product, int quantity) {
+        if (product.getStatus() == null || !product.getStatus()) {
+            throw new IllegalArgumentException("商品は購入できません。");
+        }
         Cart cart = getOrCreateCart(user);
         CartItem item = new CartItem(product, quantity);
         cart.getItems().add(item);

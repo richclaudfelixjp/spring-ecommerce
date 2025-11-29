@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class TestController {
     
-    // /test エンドポイントにアクセスした際に「接続成功」と返す
+    /**
+     * 接続テスト用エンドポイント
+     */
     @GetMapping("/test")
     public String test() {
         return "接続成功";
