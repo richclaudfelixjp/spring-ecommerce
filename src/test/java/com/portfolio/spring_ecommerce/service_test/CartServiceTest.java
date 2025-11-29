@@ -54,6 +54,7 @@ class CartServiceTest {
         product = new Product();
         product.setId(1L);
         product.setName("Test Product");
+        product.setStatus(true);
 
         cartItem = new CartItem(product, 2);
         cartItem.setId(10L);

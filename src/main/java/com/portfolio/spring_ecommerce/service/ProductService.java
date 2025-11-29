@@ -4,6 +4,8 @@ import com.portfolio.spring_ecommerce.model.Product;
 import com.portfolio.spring_ecommerce.repository.ProductRepository;
 import com.portfolio.spring_ecommerce.dto.ProductDto;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,11 +47,9 @@ public class ProductService {
     }
 
     /**
-     * 新しい商品を登録する。
-     * ProductDtoからProductエンティティにデータを詰め替え、データベースに保存する。
-     * 新規作成時のステータスは常にfalse（無効）に設定される。
-     * @param productDto 登録する商品のデータ転送オブジェクト
-     * @return 保存された商品エンティティ
+     * 新しい商品を作成する。
+     * @param productDto 作成する商品のデータを含むDTO
+     * @return 作成された商品エンティティ
      */
     public Product createProduct(ProductDto productDto) {
         Product product = new Product();
@@ -57,10 +57,25 @@ public class ProductService {
         product.setSku(productDto.getSku());
         product.setName(productDto.getName());
         product.setDescription(productDto.getDescription());
-        product.setUnitPrice(productDto.getUnitPrice());
-        product.setStatus(false);
-        product.setUnitsInStock(productDto.getUnitsInStock());
-        
+
+        if(productDto.getUnitPrice() == null) {
+            product.setUnitPrice(BigDecimal.ZERO);
+        } else {
+            product.setUnitPrice(productDto.getUnitPrice());
+        }
+
+        if(productDto.getStatus() == null) {
+            product.setStatus(false);
+        } else {
+            product.setStatus(true);
+        }
+
+        if(productDto.getUnitsInStock() == null) {
+            product.setUnitsInStock(0);
+        } else {
+            product.setUnitsInStock(productDto.getUnitsInStock());
+        }
+                
         return productRepository.save(product);
     }
 

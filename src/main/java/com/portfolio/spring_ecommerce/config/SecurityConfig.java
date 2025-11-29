@@ -47,7 +47,7 @@ public class SecurityConfig {
                 // 管理者エンドポイントはADMINロールが必要
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // ユーザーエンドポイントはUSERロールが必要
-                .requestMatchers("/user/**").hasRole("USER")
+                .requestMatchers("/user/**").hasAnyRole("USER","ADMIN")
                 // その他のリクエストは認証が必要
                 .anyRequest().authenticated()
             )
