@@ -7,34 +7,43 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+// 注文エンティティ
 @Entity
 @Table(name = "orders")
 public class Order {
 
+    // 主キー
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ユーザー（注文者）
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // 注文アイテムのリスト
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
+    // 注文日時
     @Column(nullable = false)
     private LocalDateTime orderDate;
 
+    // 注文ステータス
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
 
+    // 合計金額
     @Column(nullable = false)
     private Double totalAmount;
 
+    // 支払いIntent ID（ユニーク）
     @Column(unique = true)
     private String paymentIntentId;
 
+    // 以下、getter/setter
     public Long getId() {
         return id;
     }
@@ -66,6 +75,7 @@ public class Order {
     public void setOrderDate(LocalDateTime orderDate) {
         this.orderDate = orderDate;
     }
+
     public OrderStatus getStatus() {
         return status;
     }
@@ -90,6 +100,7 @@ public class Order {
         this.paymentIntentId = paymentIntentId;
     }
 
+    // 注文アイテムを追加
     public void addOrderItem(OrderItem item) {
         orderItems.add(item);
         item.setOrder(this);
