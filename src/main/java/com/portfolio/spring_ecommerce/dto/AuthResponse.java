@@ -15,7 +15,7 @@ public class AuthResponse {
         this.username = username;
     }
 
-    // Getter/Setter
+    // 以下、各フィールドのgetter/setter
     public String getToken() {
         return token;
     }

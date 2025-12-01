@@ -15,7 +15,7 @@ public class AuthRequest {
         this.password = password;
     }
 
-    // Getter/Setter
+    // 以下、各フィールドのgetter/setters
     public String getUsername() {
         return username;
     }
