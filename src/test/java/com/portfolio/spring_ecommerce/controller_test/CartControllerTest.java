@@ -72,9 +72,13 @@ class CartControllerTest {
         user.setId(1L);
         user.setUsername("testuser");
 
+        CartItem cartItem = new CartItem();
+        cartItem.setId(100L);
+
         Cart cart = new Cart();
         cart.setId(10L);
         cart.setUser(user);
+        cart.setItems(Collections.singletonList(cartItem));
 
         when(getAuthenticatedUserUtil.getAuthenticatedUser()).thenReturn(user);
         when(cartService.getOrCreateCart(user)).thenReturn(cart);
@@ -82,8 +86,8 @@ class CartControllerTest {
         mockMvc.perform(get("/user/cart")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(cart.getId()))
-                .andExpect(jsonPath("$.user.id").value(user.getId()));
+                .andExpect(jsonPath("$.items[0].id").value(cartItem.getId()))
+                .andExpect(jsonPath("$.username").value(user.getUsername()));
 
         verify(getAuthenticatedUserUtil).getAuthenticatedUser();
         verify(cartService).getOrCreateCart(user);
@@ -122,8 +126,13 @@ class CartControllerTest {
         cart.setUser(user);
         cart.setItems(Collections.emptyList());
 
+        CartItem cartItem = new CartItem();
+        cartItem.setId(1L);
+
         Cart updatedCart = new Cart();
         updatedCart.setId(20L);
+        updatedCart.setItems(Collections.singletonList(cartItem));
+
 
         when(getAuthenticatedUserUtil.getAuthenticatedUser()).thenReturn(user);
         when(productRepository.findById(100L)).thenReturn(Optional.of(product));
@@ -134,7 +143,7 @@ class CartControllerTest {
                         .param("productId", "100")
                         .param("quantity", "2"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(updatedCart.getId()));
+                .andExpect(jsonPath("$.items[0].id").value(cartItem.getId()));
 
         verify(cartService).addItemToCart(user, product, 2);
     }
@@ -177,6 +186,7 @@ class CartControllerTest {
 
         Cart updatedCart = new Cart();
         updatedCart.setId(20L);
+        updatedCart.setItems(Collections.singletonList(cartItem));
 
         when(getAuthenticatedUserUtil.getAuthenticatedUser()).thenReturn(user);
         when(cartItemRepository.findById(5L)).thenReturn(Optional.of(cartItem));
@@ -185,7 +195,7 @@ class CartControllerTest {
         mockMvc.perform(put("/user/cart/update/5")
                         .param("quantity", "3"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(updatedCart.getId()));
+                .andExpect(jsonPath("$.items[0].id").value(cartItem.getId()));
 
         verify(cartService).updateCartItemQuantity(user, 5L, 3);
     }
@@ -230,6 +240,7 @@ class CartControllerTest {
         cart.setItems(Collections.singletonList(cartItem));
         Cart updatedCart = new Cart();
         updatedCart.setId(20L);
+        updatedCart.setItems(Collections.singletonList(cartItem));
 
         when(getAuthenticatedUserUtil.getAuthenticatedUser()).thenReturn(user);
         when(cartService.getOrCreateCart(user)).thenReturn(cart);
@@ -237,7 +248,7 @@ class CartControllerTest {
 
         mockMvc.perform(delete("/user/cart/remove/5"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(updatedCart.getId()));
+                .andExpect(jsonPath("$.items[0].id").value(cartItem.getId()));
 
         verify(cartService).removeItemFromCart(user, 5L);
     }

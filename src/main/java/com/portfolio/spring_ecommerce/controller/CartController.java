@@ -1,5 +1,6 @@
 package com.portfolio.spring_ecommerce.controller;
 
+import com.portfolio.spring_ecommerce.dto.CartDTO;
 import com.portfolio.spring_ecommerce.model.*;
 import com.portfolio.spring_ecommerce.service.CartService;
 import com.portfolio.spring_ecommerce.repository.ProductRepository;
@@ -37,29 +38,28 @@ public class CartController {
     }
 
     /**
-     * ユーザーのカート情報を取得する
-     * アクセスにはUSERロールが必要
-     * @return カート情報とHTTPステータス200、ユーザーが見つからない場合は404
+     * 認証されたユーザーのカート情報を取得するエンドポイント
+     * @return カート情報を含むResponseEntity
      */
     @GetMapping
     @PreAuthorize("hasRole('USER')") // USERロールのみアクセス可能
-    public ResponseEntity<Cart> getCart() {
+    public ResponseEntity<CartDTO> getCart() {
         User user = getAuthenticatedUserUtil.getAuthenticatedUser();
         if (user == null) return ResponseEntity.notFound().build();
         Cart cart = cartService.getOrCreateCart(user);
-        return ResponseEntity.ok(cart);
+        CartDTO cartDTO = new CartDTO(user.getUsername(), cart.getItems());
+        return ResponseEntity.ok(cartDTO);
     }
 
     /**
-     * カートに商品を追加する
-     * アクセスにはUSERロールが必要
-     * @param productId 商品ID
-     * @param quantity 数量
-     * @return 更新されたカート情報とHTTPステータス200、不正なリクエストの場合は400
+     * カートに商品を追加するエンドポイント
+     * @param productId 追加する商品のID
+     * @param quantity 追加する数量
+     * @return 更新されたカート情報を含むResponseEntity
      */
     @PostMapping("/add")
     @PreAuthorize("hasRole('USER')") // USERロールのみアクセス可能
-    public ResponseEntity<Cart> addItem(
+    public ResponseEntity<CartDTO> addItem(
             @RequestParam Long productId,
             @RequestParam int quantity) {
         User user = getAuthenticatedUserUtil.getAuthenticatedUser();
@@ -82,19 +82,19 @@ public class CartController {
         }
 
         cart = cartService.addItemToCart(user, product, quantity);
-        return ResponseEntity.ok(cart);
+        CartDTO cartDTO = new CartDTO(user.getUsername(), cart.getItems());
+        return ResponseEntity.ok(cartDTO);
     }
 
     /**
-     * カート内の商品の数量を更新する
-     * アクセスにはUSERロールが必要
-     * @param cartItemId カートアイテムID
-     * @param quantity 更新後の数量
-     * @return 更新されたカート情報とHTTPステータス200
+     * カート内のアイテム数量を更新するエンドポイント
+     * @param cartItemId 更新するカートアイテムのID
+     * @param quantity 新しい数量
+     * @return 更新されたカート情報を含むResponseEntity
      */
     @PutMapping("/update/{cartItemId}")
     @PreAuthorize("hasRole('USER')") // USERロールのみアクセス可能
-    public ResponseEntity<Cart> updateQuantity(
+    public ResponseEntity<CartDTO> updateQuantity(
             @PathVariable Long cartItemId,
             @RequestParam int quantity) {
         User user = getAuthenticatedUserUtil.getAuthenticatedUser();
@@ -110,18 +110,18 @@ public class CartController {
         }
 
         Cart cart = cartService.updateCartItemQuantity(user, cartItemId, quantity);
-        return ResponseEntity.ok(cart);
+        CartDTO cartDTO = new CartDTO(user.getUsername(), cart.getItems());
+        return ResponseEntity.ok(cartDTO);
     }
 
     /**
-     * カートから商品を削除する
-     * アクセスにはUSERロールが必要
-     * @param cartItemId カートアイテムID
-     * @return 更新されたカート情報とHTTPステータス200
+     * カートからアイテムを削除するエンドポイント
+     * @param cartItemId 削除するカートアイテムのID
+     * @return 更新されたカート情報を含むResponseEntity
      */
     @DeleteMapping("/remove/{cartItemId}")
     @PreAuthorize("hasRole('USER')") // USERロールのみアクセス可能
-    public ResponseEntity<Cart> removeItem(
+    public ResponseEntity<CartDTO> removeItem(
             @PathVariable Long cartItemId) {
         User user = getAuthenticatedUserUtil.getAuthenticatedUser();
         if (user == null) return ResponseEntity.badRequest().build();
@@ -134,6 +134,7 @@ public class CartController {
         }
 
         cart = cartService.removeItemFromCart(user, cartItemId);
-        return ResponseEntity.ok(cart);
+        CartDTO cartDTO = new CartDTO(user.getUsername(), cart.getItems());
+        return ResponseEntity.ok(cartDTO);
     }
 }
