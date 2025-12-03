@@ -68,8 +68,8 @@ public class OrderControllerTest {
 
         mockMvc.perform(post("/user/orders/create"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(testOrder.getId()))
-                .andExpect(jsonPath("$.status").value(testOrder.getStatus().toString()));
+                .andExpect(jsonPath("$.orders[0].id").value(testOrder.getId()))
+                .andExpect(jsonPath("$.orders[0].status").value(testOrder.getStatus().toString()));
     }
 
     /**
@@ -108,8 +108,8 @@ public class OrderControllerTest {
 
         mockMvc.perform(get("/user/orders"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(testOrder.getId()))
-                .andExpect(jsonPath("$[0].status").value(testOrder.getStatus().toString()));
+                .andExpect(jsonPath("$.orders[0].id").value(testOrder.getId()))
+                .andExpect(jsonPath("$.orders[0].status").value(testOrder.getStatus().toString()));
     }
 
     /**
@@ -133,7 +133,7 @@ public class OrderControllerTest {
 
         mockMvc.perform(get("/user/orders"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isEmpty());
+                .andExpect(jsonPath("$.orders").isEmpty());
     }
 
     /**
@@ -158,8 +158,8 @@ public class OrderControllerTest {
 
         mockMvc.perform(get("/user/orders/{orderId}", testOrder.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(testOrder.getId()))
-                .andExpect(jsonPath("$.status").value(testOrder.getStatus().toString()));
+                .andExpect(jsonPath("$.orders[0].id").value(testOrder.getId()))
+                .andExpect(jsonPath("$.orders[0].status").value(testOrder.getStatus().toString()));
     }
 
     /**
