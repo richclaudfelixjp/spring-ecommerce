@@ -1,6 +1,7 @@
 package com.portfolio.spring_ecommerce.controller;
 
 import com.portfolio.spring_ecommerce.dto.OrderDTO;
+import com.portfolio.spring_ecommerce.dto.UserOrdersResponseDTO;
 import com.portfolio.spring_ecommerce.model.Order;
 import com.portfolio.spring_ecommerce.model.User;
 import com.portfolio.spring_ecommerce.service.OrderService;
@@ -35,16 +36,18 @@ public class OrderController {
 
     /**
      * 認証されたユーザーのカートから新しい注文を作成するエンドポイント
-     * @return 作成された注文のDTO
+     * @return 作成された注文の情報を含むレスポンスエンティティ
      */
     @PostMapping("/create")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<OrderDTO> createOrderFromCart() {
+    public ResponseEntity<UserOrdersResponseDTO> createOrderFromCart() {
         try {
             User user = getAuthenticatedUserUtil.getAuthenticatedUser();
             Order order = orderService.createOrderFromCart(user);
             OrderDTO orderDTO = new OrderDTO(order);
-            return new ResponseEntity<>(orderDTO, HttpStatus.CREATED);
+            List<OrderDTO> orderDTOs = List.of(orderDTO);
+            UserOrdersResponseDTO response = new UserOrdersResponseDTO(user.getUsername(), orderDTOs);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
             throw new IllegalArgumentException("カートが空のため、注文を作成できません。");
         }
@@ -52,32 +55,39 @@ public class OrderController {
 
     /**
      * 認証されたユーザーのすべての注文を取得するエンドポイント
-     * @return ユーザーの注文リストのDTO
+     * @return ユーザーの注文リストを含むレスポンスエンティティ
      */
     @GetMapping
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<List<OrderDTO>> getOrdersForUser() {
+    public ResponseEntity<UserOrdersResponseDTO> getOrdersForUser() {
         User user = getAuthenticatedUserUtil.getAuthenticatedUser();
         List<Order> orders = orderService.getOrdersForUser(user);
         List<OrderDTO> orderDTOs = orders.stream()
                 .map(OrderDTO::new)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(orderDTOs);
+        
+        UserOrdersResponseDTO response = new UserOrdersResponseDTO(user.getUsername(), orderDTOs);
+        
+        return ResponseEntity.ok(response);
     }
 
     /**
      * 指定されたIDの注文を取得するエンドポイント
      * @param orderId 取得する注文のID
-     * @return 注文のDTO、存在しない場合は404ステータス
+     * @return 注文情報を含むレスポンスエンティティ、存在しない場合は404ステータス
      */
     @GetMapping("/{orderId}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long orderId) {
+    public ResponseEntity<UserOrdersResponseDTO> getOrderById(@PathVariable Long orderId) {
         User user = getAuthenticatedUserUtil.getAuthenticatedUser();
         return orderService.getOrderById(orderId)
                 .filter(order -> order.getUser().getId().equals(user.getId()))
                 .map(OrderDTO::new)
-                .map(ResponseEntity::ok)
+                .map(orderDTO -> {
+                    List<OrderDTO> orderDTOs = List.of(orderDTO);
+                    UserOrdersResponseDTO response = new UserOrdersResponseDTO(user.getUsername(), orderDTOs);
+                    return ResponseEntity.ok(response);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 }
