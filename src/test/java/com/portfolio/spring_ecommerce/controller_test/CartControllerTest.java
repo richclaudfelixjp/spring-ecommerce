@@ -72,7 +72,10 @@ class CartControllerTest {
         user.setId(1L);
         user.setUsername("testuser");
 
-        CartItem cartItem = new CartItem();
+        Product product = new Product();
+        product.setUnitPrice(java.math.BigDecimal.valueOf(500));
+
+        CartItem cartItem = new CartItem(product, 2);
         cartItem.setId(100L);
 
         Cart cart = new Cart();
@@ -121,12 +124,13 @@ class CartControllerTest {
         product.setId(100L);
         product.setStatus(true);
         product.setUnitsInStock(10);
+        product.setUnitPrice(java.math.BigDecimal.valueOf(500));
 
         Cart cart = new Cart();
         cart.setUser(user);
         cart.setItems(Collections.emptyList());
 
-        CartItem cartItem = new CartItem();
+        CartItem cartItem = new CartItem(product, 2);
         cartItem.setId(1L);
 
         Cart updatedCart = new Cart();
@@ -179,8 +183,9 @@ class CartControllerTest {
 
         Product product = new Product();
         product.setUnitsInStock(10);
+        product.setUnitPrice(java.math.BigDecimal.valueOf(500));
 
-        CartItem cartItem = new CartItem();
+        CartItem cartItem = new CartItem(product, 2);
         cartItem.setId(5L);
         cartItem.setProduct(product);
 
@@ -233,12 +238,18 @@ class CartControllerTest {
     void removeItem_Success() throws Exception {
         User user = new User();
         user.setId(1L);
-        CartItem cartItem = new CartItem();
+
+        Product product = new Product();
+        product.setUnitPrice(java.math.BigDecimal.valueOf(500));
+
+        CartItem cartItem = new CartItem(product, 2);
         cartItem.setId(5L);
         Cart cart = new Cart();
+
         cart.setUser(user);
         cart.setItems(Collections.singletonList(cartItem));
         Cart updatedCart = new Cart();
+
         updatedCart.setId(20L);
         updatedCart.setItems(Collections.singletonList(cartItem));
 
