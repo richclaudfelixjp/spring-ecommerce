@@ -34,7 +34,10 @@ public class OrderController {
         this.getAuthenticatedUserUtil = getAuthenticatedUserUtil;
     }
 
-    
+    /**
+     * 認証されたユーザーのカートから新しい注文を作成するエンドポイント
+     * @return 作成された注文の情報を含むレスポンスエンティティ
+     */
     @PostMapping("/create")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserOrdersResponseDTO> createOrderFromCart() {
@@ -50,7 +53,10 @@ public class OrderController {
         }
     }
 
-
+    /**
+     * 認証されたユーザーのすべての注文を取得するエンドポイント
+     * @return ユーザーの注文リストを含むレスポンスエンティティ
+     */
     @GetMapping
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserOrdersResponseDTO> getOrdersForUser() {
@@ -65,7 +71,11 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    
+    /**
+     * 指定されたIDの注文を取得するエンドポイント
+     * @param orderId 取得する注文のID
+     * @return 注文情報を含むレスポンスエンティティ、存在しない場合は404ステータス
+     */
     @GetMapping("/{orderId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserOrdersResponseDTO> getOrderById(@PathVariable Long orderId) {
