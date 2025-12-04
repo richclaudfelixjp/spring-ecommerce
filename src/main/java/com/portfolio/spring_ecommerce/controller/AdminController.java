@@ -60,50 +60,38 @@ public class AdminController {
     }
 
     /**
-     * 商品情報の更新
+     * 商品の更新（ID指定）
      * @param id 商品ID
-     * @param product 更新する商品情報
-     * @return 更新された商品情報とHTTPステータス200、存在しない場合は404
+     * @param productDto 更新内容を含む商品情報DTO（バリデーション付き）
+     * @return 更新された商品情報とHTTPステータス200
      */
     @PutMapping("/products/{id}")
     @PreAuthorize("hasRole('ADMIN')") // ADMINロールのみアクセス可能
-    public ResponseEntity<Product> updateProduct(@PathVariable("id") Long id, @RequestBody Product product) {
-        Product updatedProduct = productService.updateProduct(id, product);
-        if (updatedProduct != null) {
-            return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Product> updateProduct(@PathVariable("id") Long id, @Valid @RequestBody ProductDto productDto) {
+        Product updatedProduct = productService.updateProduct(id, productDto);
+        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
     }
 
     /**
      * 商品の削除（ID指定）
      * @param id 商品ID
-     * @return 削除成功時はHTTPステータス204、失敗時は500
+     * @return 削除成功時はHTTPステータス204
      */
     @DeleteMapping("/products/{id}")
     @PreAuthorize("hasRole('ADMIN')") // ADMINロールのみアクセス可能
-    public ResponseEntity<HttpStatus> deleteProduct(@PathVariable("id") Long id) {
-        try {
-            productService.deleteProduct(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<Void> deleteProduct(@PathVariable("id") Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
     }
 
     /**
      * 全商品の削除
-     * @return 削除成功時はHTTPステータス204、失敗時は500
+     * @return 削除成功時はHTTPステータス204
      */
     @DeleteMapping("/products")
     @PreAuthorize("hasRole('ADMIN')") // ADMINロールのみアクセス可能
-    public ResponseEntity<HttpStatus> deleteAllProducts() {
-        try {
-            productService.deleteAllProducts();
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<Void> deleteAllProducts() {
+        productService.deleteAllProducts();
+        return ResponseEntity.noContent().build();
     }
 }

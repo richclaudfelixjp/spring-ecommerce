@@ -3,6 +3,8 @@ package com.portfolio.spring_ecommerce.controller_test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portfolio.spring_ecommerce.controller.AdminController;
 import com.portfolio.spring_ecommerce.dto.ProductDto;
+import com.portfolio.spring_ecommerce.exception.ResourceNotFoundException;
+import com.portfolio.spring_ecommerce.exception.SkuAlreadyExistsException;
 import com.portfolio.spring_ecommerce.model.Product;
 import com.portfolio.spring_ecommerce.util.JwtUtil;
 import com.portfolio.spring_ecommerce.service.JwtBlacklistService;
@@ -23,7 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.springframework.http.MediaType;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -128,18 +129,20 @@ class AdminControllerTest {
     @WithMockUser(roles = "ADMIN")
     void updateProduct_WhenProductExists_ReturnsOk() throws Exception {
         Long productId = 1L;
-        Product productToUpdate = new Product();
-        productToUpdate.setName("商品1");
+        ProductDto productDto = new ProductDto();
+        productDto.setSku("TEST-SKU123");
+        productDto.setName("商品2");
+
         Product updatedProduct = new Product();
         updatedProduct.setId(productId);
         updatedProduct.setName("商品2");
 
-        when(productService.updateProduct(eq(productId), any(Product.class))).thenReturn(updatedProduct);
+        when(productService.updateProduct(eq(productId), any(ProductDto.class))).thenReturn(updatedProduct);
 
         mockMvc.perform(put("/admin/products/{id}", productId)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(productToUpdate)))
+                        .content(objectMapper.writeValueAsString(productDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(productId))
                 .andExpect(jsonPath("$.name").value("商品2"));
@@ -152,16 +155,41 @@ class AdminControllerTest {
     @WithMockUser(roles = "ADMIN")
     void updateProduct_WhenProductNotFound_ReturnsNotFound() throws Exception {
         Long productId = 99L;
-        Product productToUpdate = new Product();
-        productToUpdate.setName("商品1");
+        ProductDto productDto = new ProductDto();
+        productDto.setName("商品1");
+        productDto.setSku("SKU-001");
 
-        when(productService.updateProduct(eq(productId), any(Product.class))).thenReturn(null);
+        when(productService.updateProduct(eq(productId), any(ProductDto.class)))
+                .thenThrow(new ResourceNotFoundException("商品が見つかりません。"));
 
         mockMvc.perform(put("/admin/products/{id}", productId)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(productToUpdate)))
-                .andExpect(status().isNotFound());
+                        .content(objectMapper.writeValueAsString(productDto)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("商品が見つかりません。"));
+    }
+
+    /**
+     * SKUが重複している商品の更新が失敗することを検証
+     */
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void updateProduct_WhenSkuAlreadyExists_ReturnsConflict() throws Exception {
+        Long productId = 1L;
+        ProductDto productDto = new ProductDto();
+        productDto.setSku("EXISTING-SKU");
+        productDto.setName("商品1");
+
+        when(productService.updateProduct(eq(productId), any(ProductDto.class)))
+                .thenThrow(new SkuAlreadyExistsException("SKUが既に存在します: " + productDto.getSku()));
+
+        mockMvc.perform(put("/admin/products/{id}", productId)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(productDto)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("SKUが既に存在します: " + productDto.getSku()));
     }
 
     /**
@@ -178,19 +206,6 @@ class AdminControllerTest {
     }
 
     /**
-     * 商品の削除時にエラーが発生した場合を検証
-     */
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void deleteProduct_WhenServiceThrowsException_ReturnsInternalServerError() throws Exception {
-        Long productId = 1L;
-        doThrow(new RuntimeException("データベースエラー")).when(productService).deleteProduct(productId);
-
-        mockMvc.perform(delete("/admin/products/{id}", productId).with(csrf()))
-                .andExpect(status().isInternalServerError());
-    }
-
-    /**
      * 全商品の削除が成功することを検証
      */
     @Test
@@ -200,17 +215,5 @@ class AdminControllerTest {
 
         mockMvc.perform(delete("/admin/products").with(csrf()))
                 .andExpect(status().isNoContent());
-    }
-
-    /**
-     * 全商品の削除時にエラーが発生した場合を検証
-     */
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void deleteAllProducts_WhenServiceThrowsException_ReturnsInternalServerError() throws Exception {
-        doThrow(new RuntimeException("データベースエラー")).when(productService).deleteAllProducts();
-
-        mockMvc.perform(delete("/admin/products").with(csrf()))
-                .andExpect(status().isInternalServerError());
     }
 }
