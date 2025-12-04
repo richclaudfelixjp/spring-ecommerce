@@ -1,6 +1,8 @@
 package com.portfolio.spring_ecommerce.service_test;
 
 import com.portfolio.spring_ecommerce.dto.ProductDto;
+import com.portfolio.spring_ecommerce.exception.ResourceNotFoundException;
+import com.portfolio.spring_ecommerce.exception.SkuAlreadyExistsException;
 import com.portfolio.spring_ecommerce.model.Product;
 import com.portfolio.spring_ecommerce.repository.ProductRepository;
 import com.portfolio.spring_ecommerce.service.ProductService;
@@ -14,7 +16,7 @@ import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -105,7 +107,7 @@ class ProductServiceTest {
         existingProduct.setUnitsInStock(10);
         existingProduct.setStatus(false);
 
-        Product productUpdateInfo = new Product();
+        ProductDto productUpdateInfo = new ProductDto();
         productUpdateInfo.setName("新しい名前");
         productUpdateInfo.setUnitPrice(new BigDecimal("20.00"));
 
@@ -133,25 +135,69 @@ class ProductServiceTest {
 
     /**
      * updateProductメソッドの失敗テスト。
-     * 更新対象の商品IDが存在しないケースを検証する。
+     * 更新対象の商品IDが存在しない場合にResourceNotFoundExceptionがスローされることを検証する。
      */
     @Test
     void testUpdateProduct_NotFound() {
         // Arrange: 存在しない商品IDと更新用データを準備
         Long productId = 1L;
-        Product productUpdateInfo = new Product();
+        ProductDto productUpdateInfo = new ProductDto();
         productUpdateInfo.setName("新しい名前");
 
         // Arrange: findByIdが空のOptionalを返すように設定
         when(productRepository.findById(productId)).thenReturn(Optional.empty());
 
-        // Act: テスト対象のメソッドを呼び出し
-        Product result = productService.updateProduct(productId, productUpdateInfo);
+        // Act & Assert: ResourceNotFoundExceptionがスローされることを確認
+        assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateProduct(productId, productUpdateInfo);
+        });
 
-        // Assert: 結果がnullであることを確認
-        assertNull(result);
         // Assert: findByIdは呼ばれるが、saveは呼ばれないことを確認
         verify(productRepository, times(1)).findById(productId);
+        verify(productRepository, times(0)).save(any(Product.class));
+    }
+
+    /**
+     * updateProductメソッドの失敗テスト。
+     * 更新しようとしたSKUが既に他の商品で使われている場合にSkuAlreadyExistsExceptionがスローされることを検証する。
+     */
+    @Test
+    void testUpdateProduct_SkuAlreadyExists() {
+        // Arrange: 既存の商品データと、別の商品が使用中のSKUを持つ更新用データを準備
+        Long productId = 1L;
+        Product existingProduct = new Product();
+        existingProduct.setId(productId);
+        existingProduct.setSku("SKU-OLD");
+        existingProduct.setName("古い名前");
+        existingProduct.setDescription("古い説明");
+        existingProduct.setUnitPrice(new BigDecimal("10.00"));
+        existingProduct.setUnitsInStock(10);
+        existingProduct.setStatus(true);
+        existingProduct.setImageURL("http://example.com/old-image.jpg");
+
+        String newSku = "SKU-NEW-BUT-TAKEN";
+        ProductDto productUpdateInfo = new ProductDto();
+        productUpdateInfo.setSku(newSku);
+        productUpdateInfo.setName("新しい名前");
+        productUpdateInfo.setDescription("新しい説明");
+        productUpdateInfo.setUnitPrice(new BigDecimal("20.00"));
+        productUpdateInfo.setUnitsInStock(20);
+        productUpdateInfo.setStatus(false);
+        productUpdateInfo.setImageURL("http://example.com/new-image.jpg");
+
+
+        // Arrange: findByIdで既存商品を返し、existsBySkuでtrueを返すように設定
+        when(productRepository.findById(productId)).thenReturn(Optional.of(existingProduct));
+        when(productRepository.existsBySku(newSku)).thenReturn(true);
+
+        // Act & Assert: SkuAlreadyExistsExceptionがスローされることを確認
+        assertThrows(SkuAlreadyExistsException.class, () -> {
+            productService.updateProduct(productId, productUpdateInfo);
+        });
+
+        // Assert: findByIdとexistsBySkuは呼ばれるが、saveは呼ばれないことを確認
+        verify(productRepository, times(1)).findById(productId);
+        verify(productRepository, times(1)).existsBySku(newSku);
         verify(productRepository, times(0)).save(any(Product.class));
     }
 }

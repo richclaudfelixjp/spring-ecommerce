@@ -42,6 +42,11 @@ public class ProductDto {
      */
     private Integer unitsInStock;
 
+    /**
+     * 商品画像のURL。
+     */
+    private String imageURL;
+
     // 以下、各フィールドのgetter/setter
 
     public String getSku() {
@@ -90,5 +95,13 @@ public class ProductDto {
 
     public void setUnitsInStock(Integer unitsInStock) {
         this.unitsInStock = unitsInStock;
+    }
+
+    public String getImageURL() {
+        return imageURL;
+    }
+
+    public void setImageURL(String imageURL) {
+        this.imageURL = imageURL;
     }
 }

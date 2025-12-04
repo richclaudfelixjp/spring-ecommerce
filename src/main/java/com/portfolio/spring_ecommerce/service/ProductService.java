@@ -3,6 +3,9 @@ package com.portfolio.spring_ecommerce.service;
 import com.portfolio.spring_ecommerce.model.Product;
 import com.portfolio.spring_ecommerce.repository.ProductRepository;
 import com.portfolio.spring_ecommerce.dto.ProductDto;
+import com.portfolio.spring_ecommerce.exception.ResourceNotFoundException;
+import com.portfolio.spring_ecommerce.exception.SkuAlreadyExistsException;
+
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -52,6 +55,10 @@ public class ProductService {
      * @return 作成された商品エンティティ
      */
     public Product createProduct(ProductDto productDto) {
+        if (productRepository.existsBySku(productDto.getSku())) {
+            throw new SkuAlreadyExistsException("SKUが既に存在します: " + productDto.getSku());
+        }
+
         Product product = new Product();
 
         product.setSku(productDto.getSku());
@@ -86,33 +93,39 @@ public class ProductService {
      * @param product 更新内容を含む商品オブジェクト
      * @return 更新された商品エンティティ。商品が存在しない場合はnullを返す。
      */
-    public Product updateProduct(Long id, Product product) {
+    public Product updateProduct(Long id, ProductDto productDto) {
         Optional<Product> optionalProduct = productRepository.findById(id);
         if (optionalProduct.isPresent()) {
             Product existingProduct = optionalProduct.get();
 
-            if (product.getSku() != null) {
-                existingProduct.setSku(product.getSku());
+            if (productDto.getSku() != null && !productDto.getSku().equals(existingProduct.getSku())) {
+                if (productRepository.existsBySku(productDto.getSku())) {
+                    throw new SkuAlreadyExistsException("SKUが既に存在します: " + productDto.getSku());
+                }
+                existingProduct.setSku(productDto.getSku());
             }
-            if (product.getName() != null) {
-                existingProduct.setName(product.getName());
+            if (productDto.getName() != null) {
+                existingProduct.setName(productDto.getName());
             }
-            if (product.getDescription() != null) {
-                existingProduct.setDescription(product.getDescription());
+            if (productDto.getDescription() != null) {
+                existingProduct.setDescription(productDto.getDescription());
             }
-            if (product.getUnitPrice() != null) {
-                existingProduct.setUnitPrice(product.getUnitPrice());
+            if (productDto.getUnitPrice() != null) {
+                existingProduct.setUnitPrice(productDto.getUnitPrice());
             }
-            if (product.getUnitsInStock() != null) {
-                existingProduct.setUnitsInStock(product.getUnitsInStock());
+            if (productDto.getUnitsInStock() != null) {
+                existingProduct.setUnitsInStock(productDto.getUnitsInStock());
             }
-            if (product.getStatus() != null) {
-                existingProduct.setStatus(product.getStatus());
+            if (productDto.getStatus() != null) {
+                existingProduct.setStatus(productDto.getStatus());
+            }
+            if (productDto.getImageURL() != null) {
+                existingProduct.setImageURL(productDto.getImageURL());
             }
             
             return productRepository.save(existingProduct);
         } else {
-            return null; 
+            throw new ResourceNotFoundException("商品が見つかりません。");
         }
     }
 

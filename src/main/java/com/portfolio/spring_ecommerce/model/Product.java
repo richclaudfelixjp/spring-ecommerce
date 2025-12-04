@@ -20,7 +20,7 @@ public class Product {
     private Long id;
 
     // SKUコード
-    @Column(name = "sku")
+    @Column(name = "sku", unique = true)
     private String sku;
 
     // 商品名
@@ -42,6 +42,10 @@ public class Product {
     // 在庫数
     @Column(name = "units_in_stock")
     private Integer unitsInStock;
+
+    // 画像URL
+    @Column(name = "image_url")
+    private String imageURL;
 
     // 以下、getter/setter
     public Long getId() {
@@ -98,5 +102,13 @@ public class Product {
 
     public void setUnitsInStock(Integer unitsInStock) {
         this.unitsInStock = unitsInStock;
+    }
+
+    public String getImageURL() {
+        return imageURL;
+    }
+
+    public void setImageURL(String imageURL) {
+        this.imageURL = imageURL;
     }
 }
