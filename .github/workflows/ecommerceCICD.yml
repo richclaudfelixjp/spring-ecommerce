@@ -42,7 +42,7 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_PRIVATE_KEY }}
         script: |
-         # Create or overwrite the environment file with secrets in Spring Boot's format
+          # Create or overwrite the environment file with secrets in Spring Boot's format
           echo "SPRING_DATASOURCE_URL=jdbc:postgresql://${{ secrets.RDS_ENDPOINT }}:5432/ecommercedb" | sudo tee /etc/environment
           echo "SPRING_DATASOURCE_USERNAME=${{ secrets.RDS_USERNAME }}" | sudo tee -a /etc/environment
           echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.RDS_PASSWORD }}" | sudo tee -a /etc/environment
@@ -52,8 +52,8 @@ jobs:
           echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" | sudo tee -a /etc/environment
           echo "USER_PASSWORD=${{ secrets.USER_PASSWORD }}" | sudo tee -a /etc/environment
           
-          # Also add the PostgreSQL dialect for good measure
-          echo "SPRING_JPA_DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect" | sudo tee -a /etc/environment
+          # Corrected variable name: Use underscore instead of hyphen
+          echo "SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect" | sudo tee -a /etc/environment
 
           # Download new artifact from S3
           aws s3 cp s3://${{ secrets.S3_BUCKET_NAME }}/spring-ecommerce.jar /home/${{ secrets.EC2_USERNAME }}/spring-ecommerce.jar
