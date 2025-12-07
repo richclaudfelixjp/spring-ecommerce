@@ -3,8 +3,6 @@
 name: ecommerce CI
 
 on:
-  push:
-    branches: [ main ]           # mainブランチへのpushで実行
   pull_request:
     branches: [ main ]           # mainブランチへのプルリクエストで実行
 
