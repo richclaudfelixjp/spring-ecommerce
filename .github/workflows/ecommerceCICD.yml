@@ -42,19 +42,21 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_PRIVATE_KEY }}
         script: |
-          # Set environment variables
-          export DB_URL=jdbc:postgresql://${{ secrets.RDS_ENDPOINT }}:5432/ecommercedb
-          export DB_USERNAME=${{ secrets.RDS_USERNAME }}
-          export DB_PASSWORD=${{ secrets.RDS_PASSWORD }}
-          export STRIPE_API_KEY=${{ secrets.STRIPE_API_KEY_SECRET }}
-          export JWT_SECRET=${{ secrets.JWT_SECRET }}
-          export JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
-          export ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
-          export USER_PASSWORD=${{ secrets.USER_PASSWORD }}
+         # Create or overwrite the environment file with secrets in Spring Boot's format
+          echo "SPRING_DATASOURCE_URL=jdbc:postgresql://${{ secrets.RDS_ENDPOINT }}:5432/ecommercedb" | sudo tee /etc/environment
+          echo "SPRING_DATASOURCE_USERNAME=${{ secrets.RDS_USERNAME }}" | sudo tee -a /etc/environment
+          echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.RDS_PASSWORD }}" | sudo tee -a /etc/environment
+          echo "STRIPE_API_KEY_SECRET=${{ secrets.STRIPE_API_KEY_SECRET }}" | sudo tee -a /etc/environment
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" | sudo tee -a /etc/environment
+          echo "JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}" | sudo tee -a /etc/environment
+          echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" | sudo tee -a /etc/environment
+          echo "USER_PASSWORD=${{ secrets.USER_PASSWORD }}" | sudo tee -a /etc/environment
+          
+          # Also add the PostgreSQL dialect for good measure
+          echo "SPRING_JPA_DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect" | sudo tee -a /etc/environment
 
           # Download new artifact from S3
           aws s3 cp s3://${{ secrets.S3_BUCKET_NAME }}/spring-ecommerce.jar /home/${{ secrets.EC2_USERNAME }}/spring-ecommerce.jar
 
           # Restart the service
-          # The service manager (systemd) will handle stopping the old process and starting the new one.
           sudo systemctl restart spring-ecommerce.service
