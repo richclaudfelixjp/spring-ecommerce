@@ -55,8 +55,6 @@ jobs:
           # Download new artifact from S3
           aws s3 cp s3://${{ secrets.S3_BUCKET_NAME }}/spring-ecommerce.jar /home/${{ secrets.EC2_USERNAME }}/spring-ecommerce.jar
 
-          # Stop the running application
-          pkill -f 'java -jar' || true
-
-          # Start the new version
-          nohup java -jar /home/${{ secrets.EC2_USERNAME }}/spring-ecommerce.jar > /home/${{ secrets.EC2_USERNAME }}/app.log 2>&1 &
+          # Restart the service
+          # The service manager (systemd) will handle stopping the old process and starting the new one.
+          sudo systemctl restart spring-ecommerce.service
