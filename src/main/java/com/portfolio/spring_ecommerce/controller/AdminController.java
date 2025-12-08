@@ -67,7 +67,7 @@ public class AdminController {
      */
     @PutMapping("/products/{id}")
     @PreAuthorize("hasRole('ADMIN')") // ADMINロールのみアクセス可能
-    public ResponseEntity<Product> updateProduct(@PathVariable("id") Long id, @Valid @RequestBody ProductDto productDto) {
+    public ResponseEntity<Product> updateProduct(@PathVariable("id") Long id, @RequestBody ProductDto productDto) {
         Product updatedProduct = productService.updateProduct(id, productDto);
         return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
     }
