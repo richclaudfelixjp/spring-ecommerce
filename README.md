@@ -1,10 +1,8 @@
-# Spring Boot Eコマースバックエンド
+# Spring Boot ECバックエンドサービス
 
 ## 概要
 
-このプロジェクトは、Spring Bootを使用して構築されたEコマースプラットフォームのバックエンドAPIです。モダンなJava開発技術とベストプラクティスを取り入れ、セキュアでスケーラブルなアプリケーションの構築を目指しています。
-
-**注意:** このプロジェクトは現在開発進行中です。今後、機能追加や改修を予定しています。
+このプロジェクトは、Spring Boot と PostgreSQL を使用して構築された Eコマース向けのバックエンドサービスです。決済には Stripe を統合しており、Amazon Web Services にデプロイされています。
 
 ---
 
@@ -32,14 +30,7 @@
   - `JUnit5` と `Mockito` を用いたサービス層の単体テスト
   - `MockMvc` を用いたコントローラー層の結合テスト
 - **CI/CD**
-  - GitHub Actionsによる自動ビルド、テスト、AWS (S3, EC2) へのデプロイ
-
-### 今後の実装予定
-
-- ユーザープロファイル管理機能
-- 商品検索・フィルタリング機能
-
----
+  - GitHub Actionsによる自動ビルド、テスト、AWS (EC2, S3, RDS) へのデプロイ
 
 ## 使用技術
 
@@ -49,8 +40,8 @@
 - **データアクセス:** Spring Data JPA, Hibernate
 - **決済:** Stripe
 - **ビルドツール:** Maven
-- **CI/CD:** GitHub Actions, AWS (EC2, S3)
-- **その他:** `spring-dotenv` (環境変数管理), Lombok
+- **CI/CD:** GitHub Actions, AWS (EC2, S3, RDS)
+- **その他:** `spring-dotenv` (環境変数管理)
 
 ---
 
