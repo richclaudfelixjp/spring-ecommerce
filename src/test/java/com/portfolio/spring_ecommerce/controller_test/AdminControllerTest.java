@@ -10,6 +10,7 @@ import com.portfolio.spring_ecommerce.util.JwtUtil;
 import com.portfolio.spring_ecommerce.service.JwtBlacklistService;
 import com.portfolio.spring_ecommerce.service.ProductService;
 import com.portfolio.spring_ecommerce.service.UserService;
+import com.portfolio.spring_ecommerce.service.S3Service;
 import com.portfolio.spring_ecommerce.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,9 @@ class AdminControllerTest {
 
     @MockitoBean
     private SecurityConfig securityConfig; // SecurityConfigのモック
+
+    @MockitoBean
+    private S3Service S3Service; // S3Serviceのモック
 
     /**
      * 管理者ダッシュボードへのアクセスが成功することを検証

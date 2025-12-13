@@ -143,4 +143,17 @@ public class ProductService {
     public void deleteAllProducts() {
         productRepository.deleteAll();
     }
+
+    /**
+     * 商品の画像URLを更新する。
+     * @param id 更新対象の商品ID
+     * @param imageUrl 更新後の画像URL
+     * @return 更新された商品エンティティ
+     */
+    public Product updateProductImage(Long id, String imageUrl) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("商品が見つかりません。 ID: " + id));
+        product.setImageURL(imageUrl);
+        return productRepository.save(product);
+    }
 }
