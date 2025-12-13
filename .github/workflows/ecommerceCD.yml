@@ -50,6 +50,8 @@ jobs:
           echo "JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}" | sudo tee -a /etc/environment
           echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" | sudo tee -a /etc/environment
           echo "USER_PASSWORD=${{ secrets.USER_PASSWORD }}" | sudo tee -a /etc/environment
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" | sudo tee -a /etc/environment
+          echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" | sudo tee -a /etc/environment
           
           echo "SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect" | sudo tee -a /etc/environment
 
