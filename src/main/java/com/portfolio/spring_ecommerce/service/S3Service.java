@@ -10,6 +10,9 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.IOException;
 import java.util.UUID;
 
+/**
+ * S3へのファイルアップロードを担当するサービスクラス。
+ */
 @Service
 public class S3Service {
 
@@ -22,6 +25,13 @@ public class S3Service {
         this.s3Client = s3Client;
     }
 
+    /**
+     * 指定されたファイルをS3にアップロードし、そのURLを返す。
+     *
+     * @param file アップロードするファイル
+     * @return アップロードされたファイルのURL
+     * @throws IOException ファイルの読み込みに失敗した場合
+     */
     public String uploadFile(MultipartFile file) throws IOException {
         String fileExtension = getFileExtension(file.getOriginalFilename());
         String key = "products/" + UUID.randomUUID().toString() + fileExtension;
@@ -36,6 +46,12 @@ public class S3Service {
         return s3Client.utilities().getUrl(builder -> builder.bucket(bucketName).key(key)).toExternalForm();
     }
 
+    /**
+     * ファイル名から拡張子を取得するヘルパーメソッド。
+     *
+     * @param fileName ファイル名
+     * @return ファイルの拡張子（ドットを含む）、拡張子がない場合は空文字列
+     */
     private String getFileExtension(String fileName) {
         if (fileName == null || fileName.lastIndexOf('.') == -1) {
             return "";
