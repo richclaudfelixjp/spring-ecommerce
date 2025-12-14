@@ -43,7 +43,7 @@ public class SecurityConfig {
             // 各URLパターンごとにアクセス権限を設定
             .authorizeHttpRequests(auth -> auth
                 // 認証不要なエンドポイント
-                .requestMatchers("/test", "/auth/login", "/auth/register", "/auth/logout", "/products", "/products/**").permitAll()
+                .requestMatchers("/test", "/auth/login", "/auth/register", "/auth/logout", "/products", "/products/**", "/webhook/**").permitAll()
                 // 管理者エンドポイントはADMINロールが必要
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // ユーザーエンドポイントはUSERロールが必要

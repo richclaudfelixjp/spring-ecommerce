@@ -104,4 +104,51 @@ public class OrderService {
     public Optional<Order> getOrderById(Long orderId) {
         return orderRepository.findById(orderId);
     }
+
+    /**
+     * PaymentIntent IDで注文を検索する
+     */
+    public Optional<Order> findByPaymentIntentId(String paymentIntentId) {
+        return orderRepository.findByPaymentIntentId(paymentIntentId);
+    }
+
+    /**
+     * 支払い成功時に注文のステータスを更新する
+     */
+    @Transactional
+    public Order markOrderAsPaid(String paymentIntentId) {
+        Order order = findByPaymentIntentId(paymentIntentId)
+            .orElseThrow(() -> new IllegalStateException(
+                "PaymentIntent ID: " + paymentIntentId + " の注文が見つかりません"));
+        
+        order.setStatus(OrderStatus.PAID);
+        return orderRepository.save(order);
+    }
+
+    /**
+     * 支払い失敗時に在庫を復元し注文をキャンセルする
+     */
+    @Transactional
+    public void cancelOrderAndRestoreInventory(String paymentIntentId) {
+        Order order = findByPaymentIntentId(paymentIntentId)
+            .orElseThrow(() -> new IllegalStateException(
+                "PaymentIntent ID: " + paymentIntentId + " の注文が見つかりません"));
+        
+        // 在庫を復元
+        for (OrderItem item : order.getOrderItems()) {
+            Product product = item.getProduct();
+            product.setUnitsInStock(product.getUnitsInStock() + item.getQuantity());
+            productRepository.save(product);
+        }
+        
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+    }
+
+    /**
+     * 注文を保存する
+     */
+    public Order saveOrder(Order order) {
+        return orderRepository.save(order);
+    }    
 }
