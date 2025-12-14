@@ -36,7 +36,7 @@ public class WebhookController {
     @PostMapping("/stripe")
     public ResponseEntity<String> handleStripeWebhook(
             @RequestBody String payload,
-            @RequestHeader("Stripe-Signature") String sigHeader) {
+            @RequestHeader(value = "Stripe-Signature", required = false) String sigHeader) {
 
         Event event;
 
@@ -45,11 +45,20 @@ public class WebhookController {
             event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
         } catch (SignatureVerificationException e) {
             // 不正なリクエスト
+            System.err.println("❌ Invalid signature: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature");
+        } catch (Exception e) {
+            // その他のパースエラー（pingイベントなど）
+            System.err.println("⚠️ Webhook parsing error: " + e.getMessage());
+            // 200を返してStripeがリトライしないようにする
+            return ResponseEntity.ok("Event received but couldn't parse: " + e.getMessage());
         }
 
         // イベントタイプに応じて処理
-        switch (event.getType()) {
+        String eventType = event.getType();
+        System.out.println("📩 Received Stripe event: " + eventType);
+
+        switch (eventType) {
             case "payment_intent.succeeded":
                 handlePaymentSuccess(event);
                 break;
@@ -57,8 +66,9 @@ public class WebhookController {
                 handlePaymentFailure(event);
                 break;
             default:
-                // その他のイベントは無視
-                return ResponseEntity.ok("Unhandled event type: " + event.getType());
+                // その他のイベントは無視（pingなど）
+                System.out.println("ℹ️ Unhandled event type: " + eventType);
+                return ResponseEntity.ok("Unhandled event type: " + eventType);
         }
 
         return ResponseEntity.ok("Success");
@@ -68,17 +78,20 @@ public class WebhookController {
      * 支払い成功時の処理
      */
     private void handlePaymentSuccess(Event event) {
-        PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer()
-                .getObject()
-                .orElseThrow(() -> new IllegalStateException("PaymentIntentが見つかりません"));
-
-        String paymentIntentId = paymentIntent.getId();
-        
         try {
+            PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer()
+                    .getObject()
+                    .orElseThrow(() -> new IllegalStateException("PaymentIntentが見つかりません"));
+
+            String paymentIntentId = paymentIntent.getId();
+            
+            System.out.println("💳 Processing payment success for: " + paymentIntentId);
             orderService.markOrderAsPaid(paymentIntentId);
-            System.out.println("注文が支払い済みに更新されました: " + paymentIntentId);
+            System.out.println("✅ 注文が支払い済みに更新されました: " + paymentIntentId);
+            
         } catch (Exception e) {
-            System.err.println("注文の更新に失敗しました: " + e.getMessage());
+            System.err.println("❌ 注文の更新に失敗しました: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -86,17 +99,20 @@ public class WebhookController {
      * 支払い失敗時の処理
      */
     private void handlePaymentFailure(Event event) {
-        PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer()
-                .getObject()
-                .orElseThrow(() -> new IllegalStateException("PaymentIntentが見つかりません"));
-
-        String paymentIntentId = paymentIntent.getId();
-        
         try {
+            PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer()
+                    .getObject()
+                    .orElseThrow(() -> new IllegalStateException("PaymentIntentが見つかりません"));
+
+            String paymentIntentId = paymentIntent.getId();
+            
+            System.out.println("💳 Processing payment failure for: " + paymentIntentId);
             orderService.cancelOrderAndRestoreInventory(paymentIntentId);
-            System.out.println("注文がキャンセルされ、在庫が復元されました: " + paymentIntentId);
+            System.out.println("✅ 注文がキャンセルされ、在庫が復元されました: " + paymentIntentId);
+            
         } catch (Exception e) {
-            System.err.println("注文のキャンセルに失敗しました: " + e.getMessage());
+            System.err.println("❌ 注文のキャンセルに失敗しました: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
