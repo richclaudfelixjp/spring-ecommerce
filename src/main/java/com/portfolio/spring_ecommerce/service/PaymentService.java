@@ -24,8 +24,9 @@ public class PaymentService {
     }
 
     /**
-     * Stripeで支払いインテントを作成する。
-     * @param orderDTO 支払い対象の注文DTO
+     * 注文情報に基づいてStripeのPaymentIntentを作成する。
+     *
+     * @param orderDTO 注文情報を含むDTO
      * @return 作成されたPaymentIntentオブジェクト
      * @throws StripeException Stripe API呼び出し中にエラーが発生した場合
      */
@@ -38,7 +39,10 @@ public class PaymentService {
                         .setCurrency("usd")
                         .putMetadata("orderId", orderDTO.getId().toString())
                         .setAutomaticPaymentMethods(
-                                PaymentIntentCreateParams.AutomaticPaymentMethods.builder().setEnabled(true).build()
+                                PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                                    .setEnabled(true)
+                                    .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
+                                    .build()
                         )
                         .build();
 
