@@ -7,6 +7,9 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
+/**
+ * AWSのS3クライアントを設定するためのコンフィギュレーションクラス。
+ */
 @Configuration
 public class AwsConfig {
 
