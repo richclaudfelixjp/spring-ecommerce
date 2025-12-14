@@ -5,6 +5,13 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
 import com.stripe.net.Webhook;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.io.IOException;
+
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,38 +34,36 @@ public class WebhookController {
     }
 
     /**
-     * Stripeからのwebhookイベントを処理する
-     * 
-     * @param payload Stripeから送信される生のJSONペイロード
-     * @param sigHeader Stripe-Signatureヘッダー（署名検証用）
-     * @return 処理結果のレスポンス
+     * Stripeのwebhookイベントを受信して処理するエンドポイント
      */
     @PostMapping("/stripe")
     public ResponseEntity<String> handleStripeWebhook(
-            @RequestBody String payload,
-            @RequestHeader(value = "Stripe-Signature", required = false) String sigHeader) {
+            HttpServletRequest request,
+            @RequestHeader("Stripe-Signature") String sigHeader) {
 
-        Event event;
+        byte[] payloadBytes;
 
         try {
-            // Webhookの署名を検証（セキュリティ対策）
-            event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
-        } catch (SignatureVerificationException e) {
-            // 不正なリクエスト
-            System.err.println("❌ Invalid signature: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature");
-        } catch (Exception e) {
-            // その他のパースエラー（pingイベントなど）
-            System.err.println("⚠️ Webhook parsing error: " + e.getMessage());
-            // 200を返してStripeがリトライしないようにする
-            return ResponseEntity.ok("Event received but couldn't parse: " + e.getMessage());
+            payloadBytes = request.getInputStream().readAllBytes();
+        } catch (IOException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Failed to read request body");
         }
 
-        // イベントタイプに応じて処理
-        String eventType = event.getType();
-        System.out.println("📩 Received Stripe event: " + eventType);
+        String payload = new String(payloadBytes, StandardCharsets.UTF_8);
 
-        switch (eventType) {
+        Event event;
+        try {
+            event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
+        } catch (SignatureVerificationException e) {
+            System.err.println("❌ Invalid signature: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature");
+        }
+
+        System.out.println("📩 Received Stripe event: " + event.getType());
+
+        switch (event.getType()) {
             case "payment_intent.succeeded":
                 handlePaymentSuccess(event);
                 break;
@@ -66,9 +71,7 @@ public class WebhookController {
                 handlePaymentFailure(event);
                 break;
             default:
-                // その他のイベントは無視（pingなど）
-                System.out.println("ℹ️ Unhandled event type: " + eventType);
-                return ResponseEntity.ok("Unhandled event type: " + eventType);
+                System.out.println("ℹ️ Unhandled event type: " + event.getType());
         }
 
         return ResponseEntity.ok("Success");
