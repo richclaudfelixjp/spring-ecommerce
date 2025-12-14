@@ -6,12 +6,6 @@ import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
 import com.stripe.net.Webhook;
 
-import jakarta.servlet.http.HttpServletRequest;
-
-import java.io.IOException;
-
-import java.nio.charset.StandardCharsets;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,20 +32,8 @@ public class WebhookController {
      */
     @PostMapping("/stripe")
     public ResponseEntity<String> handleStripeWebhook(
-            HttpServletRequest request,
+            @RequestBody String payload,
             @RequestHeader("Stripe-Signature") String sigHeader) {
-
-        byte[] payloadBytes;
-
-        try {
-            payloadBytes = request.getInputStream().readAllBytes();
-        } catch (IOException e) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body("Failed to read request body");
-        }
-
-        String payload = new String(payloadBytes, StandardCharsets.UTF_8);
 
         Event event;
         try {
