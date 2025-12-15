@@ -4,8 +4,8 @@
 
 ## デモ
 
-- **API**: http://3.106.69.208:8080
-- **フロントエンド**: https://cloudjp-ec.netlify.com
+- **APIエンドポイント**: [http://3.106.69.208:8080](http://3.106.69.208:8080)
+- **サイト**: [https://cloudjp-ec.netlify.app](https://cloudjp-ec.netlify.app)
 
 ---
 
@@ -114,7 +114,7 @@
 
 ---
 
-### ローカル起動手順
+## ローカル起動手順
 
 ```bash
 # データベース作成
@@ -128,3 +128,16 @@ CREATE DATABASE ecommercedb;
 ```
 
 起動後、`http://localhost:8080` でAPIにアクセス可能。
+
+---
+
+## フロントエンド
+
+- **デモサイト**: [https://cloudjp-ec.netlify.app](https://cloudjp-ec.netlify.app)
+- **GitHubリポジトリ**: [richclaudfelixjp/react-ecommerce](https://github.com/richclaudfelixjp/react-ecommerce)
+
+---
+
+## 作者
+
+[@richclaudfelixjp](https://github.com/richclaudfelixjp)
